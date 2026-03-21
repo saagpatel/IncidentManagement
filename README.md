@@ -1,7 +1,7 @@
 # Incident Management
 
-[![CI](https://github.com/saagar210/IncidentManagement/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/saagar210/IncidentManagement/actions/workflows/ci.yml)
-[![Bundle Budget](https://img.shields.io/badge/bundle%20budget-enforced-brightgreen)](https://github.com/saagar210/IncidentManagement/actions/workflows/ci.yml)
+[![CI](https://github.com/saagpatel/IncidentManagement/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/saagpatel/IncidentManagement/actions/workflows/ci.yml)
+[![Bundle Budget](https://img.shields.io/badge/bundle%20budget-enforced-brightgreen)](https://github.com/saagpatel/IncidentManagement/actions/workflows/ci.yml)
 
 A local-first macOS desktop app for tracking IT incidents, running blameless post-mortems, detecting trends with AI, and generating polished DOCX/PDF reports for quarterly and annual leadership reviews.
 
@@ -167,7 +167,7 @@ Quarterly incident review preparation typically takes hours of manual data gathe
 ### Install & Run
 
 ```bash
-git clone https://github.com/saagar210/IncidentManagement.git
+git clone https://github.com/saagpatel/IncidentManagement.git
 cd IncidentManagement
 pnpm install
 pnpm tauri dev
