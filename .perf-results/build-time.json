@@ -1,0 +1,5 @@
+{
+  "buildMs": 5000,
+  "capturedAt": "2026-04-12T09:53:06.573Z",
+  "command": "npm_execpath run build"
+}

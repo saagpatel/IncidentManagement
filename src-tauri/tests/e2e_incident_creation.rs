@@ -3,7 +3,7 @@
 
 #[cfg(test)]
 mod tests {
-    use sqlx::sqlite::SqlitePool;
+    use sqlx::{sqlite::SqlitePool, Row};
     use uuid::Uuid;
 
     /// Helper: Create test database with migrations
@@ -28,12 +28,17 @@ mod tests {
 
         sqlx::query(
             r#"
-            INSERT INTO services (id, name, description, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO services (
+                id, name, category, default_severity, default_impact, description, created_at, updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             "#,
         )
         .bind(&id)
         .bind("Test Service")
+        .bind("Infrastructure")
+        .bind("High")
+        .bind("High")
         .bind("Integration test service")
         .bind("2025-01-15T10:00:00Z")
         .bind("2025-01-15T10:00:00Z")
@@ -52,7 +57,7 @@ mod tests {
         // Step 1: Create incident
         let incident_id = Uuid::new_v4().to_string();
         let title = "Database Connection Failure";
-        let severity = "P1";
+        let severity = "High";
 
         sqlx::query(
             r#"
@@ -66,8 +71,8 @@ mod tests {
         .bind(title)
         .bind(&service_id)
         .bind(severity)
-        .bind("high")
-        .bind("active")
+        .bind("High")
+        .bind("Active")
         .bind("2025-01-15T10:00:00Z")
         .bind("2025-01-15T10:05:00Z")
         .bind("2025-01-15T10:00:00Z")
@@ -92,7 +97,7 @@ mod tests {
         assert_eq!(retrieved_id, incident_id);
         assert_eq!(retrieved_title, title);
         assert_eq!(retrieved_severity, severity);
-        assert_eq!(retrieved_status, "active");
+        assert_eq!(retrieved_status, "Active");
     }
 
     #[tokio::test]
@@ -114,9 +119,9 @@ mod tests {
             .bind(&incident_id)
             .bind(format!("Incident {}", i))
             .bind(&service_id)
-            .bind("P2")
-            .bind("medium")
-            .bind("active")
+            .bind("Medium")
+            .bind("Medium")
+            .bind("Active")
             .bind("2025-01-15T10:00:00Z")
             .bind("2025-01-15T10:05:00Z")
             .bind("2025-01-15T10:00:00Z")
@@ -157,9 +162,9 @@ mod tests {
         .bind(&incident_id)
         .bind("Connection Pool Leak")
         .bind(&service_id)
-        .bind("P0")
-        .bind("critical")
-        .bind("active")
+        .bind("Critical")
+        .bind("Critical")
+        .bind("Active")
         .bind(root_cause)
         .bind(resolution)
         .bind("2025-01-15T10:00:00Z")
@@ -181,7 +186,7 @@ mod tests {
 
         assert_eq!(row.get::<String, _>("id"), incident_id);
         assert_eq!(row.get::<String, _>("title"), "Connection Pool Leak");
-        assert_eq!(row.get::<String, _>("severity"), "P0");
+        assert_eq!(row.get::<String, _>("severity"), "Critical");
         assert_eq!(row.get::<Option<String>, _>("root_cause"), Some(root_cause.to_string()));
         assert_eq!(row.get::<Option<String>, _>("resolution"), Some(resolution.to_string()));
     }
@@ -193,7 +198,7 @@ mod tests {
 
         let incident_id = Uuid::new_v4().to_string();
 
-        // Create with "active" status
+        // Create with "Active" status
         sqlx::query(
             r#"
             INSERT INTO incidents (
@@ -205,9 +210,9 @@ mod tests {
         .bind(&incident_id)
         .bind("Status Test")
         .bind(&service_id)
-        .bind("P2")
-        .bind("high")
-        .bind("active")
+        .bind("Medium")
+        .bind("High")
+        .bind("Active")
         .bind("2025-01-15T10:00:00Z")
         .bind("2025-01-15T10:05:00Z")
         .bind("2025-01-15T10:00:00Z")
@@ -216,9 +221,9 @@ mod tests {
         .await
         .expect("Failed to insert incident");
 
-        // Transition to "acknowledged"
+        // Transition to "Monitoring"
         sqlx::query("UPDATE incidents SET status = ? WHERE id = ?")
-            .bind("acknowledged")
+            .bind("Monitoring")
             .bind(&incident_id)
             .execute(&db)
             .await
@@ -232,6 +237,6 @@ mod tests {
             .expect("Incident not found");
 
         let status: String = row.get("status");
-        assert_eq!(status, "acknowledged");
+        assert_eq!(status, "Monitoring");
     }
 }
