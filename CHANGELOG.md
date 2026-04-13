@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2026-03-21
 
 ### Added
+
 - Initial scaffold: Tauri 2 + React 19 + TypeScript with full Phase 1 & 2
 - Phases 3–4: DOCX reports, CSV import, dark mode, and polish
 - Comprehensive security audit with 154 tests
@@ -25,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optional Codacy main analysis and status badges
 
 ### Fixed
+
 - 47 bugs across 3 audit waves
 - PIR: gate post-mortem finalization on review content
 - CI: configure pnpm and Linux deps for workflow
@@ -37,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: stabilize cross-OS visual test flake and mobile snapshot tolerance
 
 ### Changed
+
 - Prepared public migration baseline
 - Finalized codex OS bootstrap baseline
 - Bootstrapped codex OS guardrails

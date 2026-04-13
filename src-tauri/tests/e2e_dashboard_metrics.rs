@@ -3,7 +3,7 @@
 
 #[cfg(test)]
 mod tests {
-    use sqlx::sqlite::SqlitePool;
+    use sqlx::{sqlite::SqlitePool, Row};
     use uuid::Uuid;
 
     /// Helper: Create test database with migrations
@@ -28,12 +28,17 @@ mod tests {
 
         sqlx::query(
             r#"
-            INSERT INTO services (id, name, description, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO services (
+                id, name, category, default_severity, default_impact, description, created_at, updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             "#,
         )
         .bind(&id)
         .bind(name)
+        .bind("Infrastructure")
+        .bind("High")
+        .bind("High")
         .bind("Dashboard Metrics Test Service")
         .bind("2025-01-15T10:00:00Z")
         .bind("2025-01-15T10:00:00Z")
@@ -50,9 +55,9 @@ mod tests {
         let service_id = create_test_service(&db, "Metrics Service").await;
 
         // Create incidents of various severities
-        let severities = vec!["P0", "P1", "P1", "P2", "P2", "P2", "P3", "P4"];
+        let severities = vec!["Critical", "High", "High", "Medium", "Medium", "Medium", "Low", "Low"];
 
-        for (idx, severity) in severities.iter().enumerate() {
+        for severity in &severities {
             let incident_id = Uuid::new_v4().to_string();
             sqlx::query(
                 r#"
@@ -66,8 +71,8 @@ mod tests {
             .bind(format!("Severity {} Incident", severity))
             .bind(&service_id)
             .bind(severity)
-            .bind("high")
-            .bind("active")
+            .bind("High")
+            .bind("Active")
             .bind("2025-01-15T10:00:00Z")
             .bind("2025-01-15T10:05:00Z")
             .bind("2025-01-15T10:00:00Z")
@@ -92,7 +97,7 @@ mod tests {
             .await
             .expect("Failed to count by severity");
 
-        assert_eq!(severity_row.len(), 5, "Should have 5 severity levels");
+        assert_eq!(severity_row.len(), 4, "Should have 4 severity levels");
     }
 
     #[tokio::test]
@@ -120,9 +125,9 @@ mod tests {
             .bind(&incident_id)
             .bind(format!("MTTR Incident {}", i + 1))
             .bind(&service_id)
-            .bind("P2")
-            .bind("high")
-            .bind("resolved")
+            .bind("Medium")
+            .bind("High")
+            .bind("Resolved")
             .bind(start)
             .bind(start)
             .bind(resolved)
@@ -178,9 +183,9 @@ mod tests {
                 .bind(&incident_id)
                 .bind(format!("Service Incident {}", i))
                 .bind(service_id)
-                .bind("P2")
-                .bind("high")
-                .bind("active")
+                .bind("Medium")
+                .bind("High")
+                .bind("Active")
                 .bind("2025-01-15T10:00:00Z")
                 .bind("2025-01-15T10:05:00Z")
                 .bind("2025-01-15T10:00:00Z")
@@ -193,8 +198,11 @@ mod tests {
 
         // Get incidents by service (dashboard breakdown)
         let service_rows = sqlx::query(
-            "SELECT s.name as service_name, COUNT(i.id) as incident_count FROM services s LEFT JOIN incidents i ON s.id = i.service_id GROUP BY s.id ORDER BY incident_count DESC"
+            "SELECT s.name as service_name, COUNT(i.id) as incident_count FROM services s LEFT JOIN incidents i ON s.id = i.service_id WHERE s.id IN (?, ?, ?) GROUP BY s.id ORDER BY incident_count DESC"
         )
+        .bind(&service1)
+        .bind(&service2)
+        .bind(&service3)
         .fetch_all(&db)
         .await
         .expect("Failed to get service breakdown");
@@ -213,11 +221,10 @@ mod tests {
 
         // Create incidents with specific severity distribution
         let severity_distribution = vec![
-            ("P0", 1),
-            ("P1", 3),
-            ("P2", 5),
-            ("P3", 4),
-            ("P4", 2),
+            ("Critical", 1),
+            ("High", 3),
+            ("Medium", 5),
+            ("Low", 6),
         ];
 
         for (severity, count) in severity_distribution.iter() {
@@ -235,8 +242,8 @@ mod tests {
                 .bind(format!("{} Incident {}", severity, i))
                 .bind(&service_id)
                 .bind(severity)
-                .bind("high")
-                .bind("active")
+                .bind("High")
+                .bind("Active")
                 .bind("2025-01-15T10:00:00Z")
                 .bind("2025-01-15T10:05:00Z")
                 .bind("2025-01-15T10:00:00Z")
@@ -255,14 +262,15 @@ mod tests {
         .await
         .expect("Failed to get severity distribution");
 
-        assert_eq!(severity_rows.len(), 5, "Should have all 5 severities");
+        assert_eq!(severity_rows.len(), 4, "Should have all 4 severities");
 
-        // Verify P2 has most incidents
-        let p2_row = severity_rows.iter()
-            .find(|r| r.get::<String, _>("severity") == "P2")
-            .expect("P2 not found");
-        let p2_count: i64 = p2_row.get("cnt");
-        assert_eq!(p2_count, 5, "P2 should have 5 incidents");
+        // Verify Medium has the expected incident count.
+        let medium_row = severity_rows
+            .iter()
+            .find(|r| r.get::<String, _>("severity") == "Medium")
+            .expect("Medium severity not found");
+        let medium_count: i64 = medium_row.get("cnt");
+        assert_eq!(medium_count, 5, "Medium should have 5 incidents");
     }
 
     #[tokio::test]
@@ -272,9 +280,9 @@ mod tests {
 
         // Create some resolved incidents (for SLA check)
         let sla_test_cases = vec![
-            ("2025-01-15T10:00:00Z", "2025-01-15T11:00:00Z", "P1"), // 60 min, target 240 min -> compliant
-            ("2025-01-15T12:00:00Z", "2025-01-15T17:00:00Z", "P1"), // 300 min, target 240 min -> breach
-            ("2025-01-15T18:00:00Z", "2025-01-15T18:30:00Z", "P3"), // 30 min, target 1440 min -> compliant
+            ("2025-01-15T10:00:00Z", "2025-01-15T11:00:00Z", "High"), // 60 min, target 240 min -> compliant
+            ("2025-01-15T12:00:00Z", "2025-01-15T17:00:00Z", "High"), // 300 min, target 240 min -> breach
+            ("2025-01-15T18:00:00Z", "2025-01-15T18:30:00Z", "Low"), // 30 min, target 1440 min -> compliant
         ];
 
         for (start, resolved, severity) in sla_test_cases.iter() {
@@ -291,8 +299,8 @@ mod tests {
             .bind("SLA Test")
             .bind(&service_id)
             .bind(severity)
-            .bind("high")
-            .bind("resolved")
+            .bind("High")
+            .bind("Resolved")
             .bind(start)
             .bind(start)
             .bind(resolved)
@@ -305,7 +313,7 @@ mod tests {
 
         // Verify all incidents were created for metric calculation
         let count_row = sqlx::query("SELECT COUNT(*) as total FROM incidents WHERE status = ?")
-            .bind("resolved")
+            .bind("Resolved")
             .fetch_one(&db)
             .await
             .expect("Failed to count");

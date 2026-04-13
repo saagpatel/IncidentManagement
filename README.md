@@ -46,15 +46,15 @@ pnpm tauri build
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Desktop shell | Tauri 2 + Rust |
-| Frontend | React 19 + TypeScript + Vite |
-| Styling | Tailwind CSS |
-| Storage | SQLite with FTS5 |
-| AI analysis | Ollama (local LLM) |
-| Reports | DOCX + PDF generation (Rust) |
-| Charts | Recharts |
+| Layer         | Technology                   |
+| ------------- | ---------------------------- |
+| Desktop shell | Tauri 2 + Rust               |
+| Frontend      | React 19 + TypeScript + Vite |
+| Styling       | Tailwind CSS                 |
+| Storage       | SQLite with FTS5             |
+| AI analysis   | Ollama (local LLM)           |
+| Reports       | DOCX + PDF generation (Rust) |
+| Charts        | Recharts                     |
 
 ## Architecture
 

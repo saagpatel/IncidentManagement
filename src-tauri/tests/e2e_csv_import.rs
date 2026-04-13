@@ -3,7 +3,7 @@
 
 #[cfg(test)]
 mod tests {
-    use sqlx::sqlite::SqlitePool;
+    use sqlx::{sqlite::SqlitePool, Row};
     use uuid::Uuid;
 
     /// Helper: Create test database with migrations
@@ -28,12 +28,17 @@ mod tests {
 
         sqlx::query(
             r#"
-            INSERT INTO services (id, name, description, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO services (
+                id, name, category, default_severity, default_impact, description, created_at, updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             "#,
         )
         .bind(&id)
         .bind(name)
+        .bind("Infrastructure")
+        .bind("High")
+        .bind("High")
         .bind("CSV Import Test Service")
         .bind("2025-01-15T10:00:00Z")
         .bind("2025-01-15T10:00:00Z")
@@ -63,9 +68,9 @@ mod tests {
             .bind(&incident_id)
             .bind(format!("Imported Incident {}", i + 1))
             .bind(&service_id)
-            .bind(if i % 3 == 0 { "P0" } else if i % 3 == 1 { "P1" } else { "P2" })
-            .bind("high")
-            .bind("resolved")
+            .bind(if i % 3 == 0 { "Critical" } else if i % 3 == 1 { "High" } else { "Medium" })
+            .bind("High")
+            .bind("Resolved")
             .bind("2025-01-15T10:00:00Z")
             .bind("2025-01-15T10:05:00Z")
             .bind("2025-01-15T10:00:00Z")
@@ -92,9 +97,9 @@ mod tests {
 
         // Import data with specific fields
         let import_data = vec![
-            ("incident-1", "Database Failure", "P0", "critical"),
-            ("incident-2", "API Rate Limit Exceeded", "P1", "high"),
-            ("incident-3", "Cache Invalidation Issue", "P2", "medium"),
+            ("incident-1", "Database Failure", "Critical", "Critical"),
+            ("incident-2", "API Rate Limit Exceeded", "High", "High"),
+            ("incident-3", "Cache Invalidation Issue", "Medium", "Medium"),
         ];
 
         for (ref_id, title, severity, impact) in import_data.iter() {
@@ -112,7 +117,7 @@ mod tests {
             .bind(&service_id)
             .bind(severity)
             .bind(impact)
-            .bind("resolved")
+            .bind("Resolved")
             .bind(ref_id)
             .bind("2025-01-15T10:00:00Z")
             .bind("2025-01-15T10:05:00Z")
@@ -163,9 +168,9 @@ mod tests {
         .bind(&incident_id)
         .bind("Original Incident")
         .bind(&service_id)
-        .bind("P1")
-        .bind("high")
-        .bind("active")
+        .bind("High")
+        .bind("High")
+        .bind("Active")
         .bind(unique_ref)
         .bind("2025-01-15T10:00:00Z")
         .bind("2025-01-15T10:05:00Z")
@@ -176,7 +181,7 @@ mod tests {
         .expect("Failed to insert original");
 
         // Verify unique constraint would prevent duplicate
-        let duplicate_result = sqlx::query(
+        let _duplicate_result = sqlx::query(
             r#"
             INSERT INTO incidents (
                 id, title, service_id, severity, impact, status, external_ref,
@@ -187,9 +192,9 @@ mod tests {
         .bind(Uuid::new_v4().to_string())
         .bind("Duplicate Incident")
         .bind(&service_id)
-        .bind("P1")
-        .bind("high")
-        .bind("active")
+        .bind("High")
+        .bind("High")
+        .bind("Active")
         .bind(unique_ref) // Same ref - should fail if unique constraint exists
         .bind("2025-01-15T10:00:00Z")
         .bind("2025-01-15T10:05:00Z")
@@ -234,9 +239,9 @@ mod tests {
             .bind(&incident_id)
             .bind(title)
             .bind(&service_id)
-            .bind("P2")
-            .bind("medium")
-            .bind("active")
+            .bind("Medium")
+            .bind("Medium")
+            .bind("Active")
             .bind("2025-01-15T10:00:00Z")
             .bind("2025-01-15T10:05:00Z")
             .bind("2025-01-15T10:00:00Z")

@@ -42,8 +42,8 @@ pub async fn create_test_incident(
     .bind(title)
     .bind(&service_id)
     .bind(severity)
-    .bind("high")
-    .bind("active")
+    .bind("High")
+    .bind("Active")
     .bind("2025-01-15T10:00:00Z")
     .bind("2025-01-15T10:05:00Z")
     .bind("2025-01-15T10:00:00Z")
@@ -61,12 +61,17 @@ pub async fn create_test_service(db: &SqlitePool, name: &str) -> String {
 
     sqlx::query(
         r#"
-        INSERT INTO services (id, name, description, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO services (
+            id, name, category, default_severity, default_impact, description, created_at, updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         "#,
     )
     .bind(&id)
     .bind(name)
+    .bind("Infrastructure")
+    .bind("High")
+    .bind("High")
     .bind("Test service for integration tests")
     .bind("2025-01-15T10:00:00Z")
     .bind("2025-01-15T10:00:00Z")
@@ -85,11 +90,10 @@ pub async fn create_test_incidents_for_dashboard(db: &SqlitePool, count: usize) 
     for i in 0..count {
         let id = Uuid::new_v4().to_string();
         let severity = match i % 5 {
-            0 => "P0",
-            1 => "P1",
-            2 => "P2",
-            3 => "P3",
-            _ => "P4",
+            0 => "Critical",
+            1 => "High",
+            2 => "Medium",
+            _ => "Low",
         };
 
         sqlx::query(
@@ -104,8 +108,8 @@ pub async fn create_test_incidents_for_dashboard(db: &SqlitePool, count: usize) 
         .bind(format!("Test Incident {}", i))
         .bind(&service_id)
         .bind(severity)
-        .bind("high")
-        .bind("active")
+        .bind("High")
+        .bind("Active")
         .bind("2025-01-15T10:00:00Z")
         .bind("2025-01-15T10:05:00Z")
         .bind("2025-01-15T10:00:00Z")
