@@ -1,1 +1,5 @@
+allowBuilds:
+  esbuild: true
 enableScripts: esbuild
+overrides:
+  lodash: 4.18.1
