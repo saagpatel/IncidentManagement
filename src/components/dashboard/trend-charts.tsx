@@ -1,11 +1,4 @@
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { QuarterlyTrends } from "@/types/metrics";
 
@@ -24,24 +17,25 @@ function Sparkline({ title, data, color, formatter }: SparklineProps) {
   if (data.length === 0) {
     return (
       <div className="space-y-1">
-        <p className="text-xs font-medium text-muted-foreground">{title}</p>
-        <p className="text-xs text-muted-foreground">No trend data</p>
+        <p className="text-muted-foreground text-xs font-medium">{title}</p>
+        <p className="text-muted-foreground text-xs">No trend data</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-1">
-      <p className="text-xs font-medium text-muted-foreground">{title}</p>
+      <p className="text-muted-foreground text-xs font-medium">{title}</p>
       <ResponsiveContainer width="100%" height={80}>
         <LineChart data={data}>
           <XAxis dataKey="quarter" tick={{ fontSize: 9 }} />
           <YAxis hide />
           <Tooltip
-            formatter={(value: number | undefined) => [
-              formatter ? formatter(value ?? 0) : (value ?? 0).toFixed(1),
-              title,
-            ]}
+            formatter={(value) => {
+              const numericValue = Number(value ?? 0);
+              const safeValue = Number.isFinite(numericValue) ? numericValue : 0;
+              return [formatter ? formatter(safeValue) : safeValue.toFixed(1), title];
+            }}
           />
           <Line
             type="monotone"
@@ -95,7 +89,7 @@ export function TrendCharts({ trends }: TrendChartsProps) {
       </CardHeader>
       <CardContent>
         {!hasData ? (
-          <p className="flex h-48 items-center justify-center text-sm text-muted-foreground">
+          <p className="text-muted-foreground flex h-48 items-center justify-center text-sm">
             Not enough quarterly data for trends
           </p>
         ) : (

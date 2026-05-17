@@ -1,12 +1,5 @@
 import { useMemo } from "react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { HourCount } from "@/types/metrics";
 
@@ -36,7 +29,7 @@ export function HourHistogram({ data }: HourHistogramProps) {
       </CardHeader>
       <CardContent>
         {!hasData ? (
-          <p className="flex h-48 items-center justify-center text-sm text-muted-foreground">
+          <p className="text-muted-foreground flex h-48 items-center justify-center text-sm">
             No time-of-day data available
           </p>
         ) : (
@@ -49,17 +42,16 @@ export function HourHistogram({ data }: HourHistogramProps) {
               />
               <YAxis allowDecimals={false} tick={{ fontSize: 10 }} width={30} />
               <Tooltip
-                formatter={(value: number | undefined) => [value ?? 0, "Incidents"]}
+                formatter={(value) => {
+                  const count = Number(value ?? 0);
+                  return [Number.isFinite(count) ? count : 0, "Incidents"];
+                }}
                 labelFormatter={(h: unknown) => {
                   const hour = Number(h);
                   return `${hour.toString().padStart(2, "0")}:00 - ${hour.toString().padStart(2, "0")}:59`;
                 }}
               />
-              <Bar
-                dataKey="count"
-                fill="hsl(217, 91%, 60%)"
-                radius={[2, 2, 0, 0]}
-              />
+              <Bar dataKey="count" fill="hsl(217, 91%, 60%)" radius={[2, 2, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         )}
