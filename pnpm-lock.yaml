@@ -261,6 +261,13 @@ packages:
       }
     engines: { node: ">=6.9.0" }
 
+  "@babel/code-frame@7.29.7":
+    resolution:
+      {
+        integrity: sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw==,
+      }
+    engines: { node: ">=6.9.0" }
+
   "@babel/compat-data@7.29.3":
     resolution:
       {
@@ -333,6 +340,13 @@ packages:
       }
     engines: { node: ">=6.9.0" }
 
+  "@babel/helper-validator-identifier@7.29.7":
+    resolution:
+      {
+        integrity: sha512-qehxGkRj55h/ff8EMaJ+cYhyaKlHIxqYDn682wQD7RNp9UujOQsHog2uS0r2vzr4pW+sXf90NeeayjcNaX3fFg==,
+      }
+    engines: { node: ">=6.9.0" }
+
   "@babel/helper-validator-option@7.27.1":
     resolution:
       {
@@ -377,6 +391,13 @@ packages:
     resolution:
       {
         integrity: sha512-JiDShH45zKHWyGe4ZNVRrCjBz8Nh9TMmZG1kh4QTK8hCBTWBi8Da+i7s1fJw7/lYpM4ccepSNfqzZ/QvABBi5g==,
+      }
+    engines: { node: ">=6.9.0" }
+
+  "@babel/runtime@7.29.7":
+    resolution:
+      {
+        integrity: sha512-Nq8OhGWiZIZGV6hLHoyAKLLcJihP/xFeBMGJoUrxTX2psI8dCifzLhZISFb+VWS3wFMRDmCGw5R+dOySCqPLhw==,
       }
     engines: { node: ">=6.9.0" }
 
@@ -7278,10 +7299,10 @@ packages:
       }
     engines: { node: ">=20" }
 
-  qs@6.15.1:
+  qs@6.15.2:
     resolution:
       {
-        integrity: sha512-6YHEFRL9mfgcAvql/XhwTvf5jKcOiiupt2FiJxHkiX1z4j7WL8J/jRHYLluORvc1XxB5rV20KoeK00gVJamspg==,
+        integrity: sha512-Rzq0KEyX/w/tEybncDgdkZrJgVUsUMk3xjh3t5bv3S1HTAtg+uOYt72+ZfwiQwKdysThkTBdL/rTi6HDmX9Ddw==,
       }
     engines: { node: ">=0.6" }
 
@@ -9116,6 +9137,12 @@ snapshots:
       js-tokens: 4.0.0
       picocolors: 1.1.1
 
+  "@babel/code-frame@7.29.7":
+    dependencies:
+      "@babel/helper-validator-identifier": 7.29.7
+      js-tokens: 4.0.0
+      picocolors: 1.1.1
+
   "@babel/compat-data@7.29.3": {}
 
   "@babel/core@7.29.0":
@@ -9178,6 +9205,8 @@ snapshots:
 
   "@babel/helper-validator-identifier@7.28.5": {}
 
+  "@babel/helper-validator-identifier@7.29.7": {}
+
   "@babel/helper-validator-option@7.27.1": {}
 
   "@babel/helpers@7.29.2":
@@ -9200,6 +9229,8 @@ snapshots:
       "@babel/helper-plugin-utils": 7.28.6
 
   "@babel/runtime@7.29.2": {}
+
+  "@babel/runtime@7.29.7": {}
 
   "@babel/template@7.28.6":
     dependencies:
@@ -10702,8 +10733,8 @@ snapshots:
 
   "@testing-library/dom@10.4.1":
     dependencies:
-      "@babel/code-frame": 7.29.0
-      "@babel/runtime": 7.29.2
+      "@babel/code-frame": 7.29.7
+      "@babel/runtime": 7.29.7
       "@types/aria-query": 5.0.4
       aria-query: 5.3.0
       dom-accessibility-api: 0.5.16
@@ -11227,7 +11258,7 @@ snapshots:
       http-errors: 2.0.1
       iconv-lite: 0.4.24
       on-finished: 2.4.1
-      qs: 6.15.1
+      qs: 6.15.2
       raw-body: 2.5.3
       type-is: 1.6.18
       unpipe: 1.0.0
@@ -11949,7 +11980,7 @@ snapshots:
       parseurl: 1.3.3
       path-to-regexp: 0.1.13
       proxy-addr: 2.0.7
-      qs: 6.15.1
+      qs: 6.15.2
       range-parser: 1.2.1
       safe-buffer: 5.2.1
       send: 0.19.2
@@ -13682,7 +13713,7 @@ snapshots:
     dependencies:
       hookified: 2.2.0
 
-  qs@6.15.1:
+  qs@6.15.2:
     dependencies:
       side-channel: 1.1.0
 
