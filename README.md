@@ -19,7 +19,7 @@ IncidentManagement is a local-first macOS desktop app for tracking IT incidents,
 
 ### Prerequisites
 
-- Node.js 26+ recommended for the current locked test dependencies
+- Node.js 24 (the version used by CI and supported by the locked test dependencies)
 - pnpm 10 (the version used by CI)
 - Rust toolchain (stable) + Tauri v2 prerequisites for macOS
 - [Ollama](https://ollama.ai) with a pulled model (optional — used for AI trend detection)
