@@ -19,8 +19,8 @@ IncidentManagement is a local-first macOS desktop app for tracking IT incidents,
 
 ### Prerequisites
 
-- Node.js 20+
-- pnpm 9+
+- Node.js 26+ recommended for the current locked test dependencies
+- pnpm 10 (the version used by CI)
 - Rust toolchain (stable) + Tauri v2 prerequisites for macOS
 - [Ollama](https://ollama.ai) with a pulled model (optional — used for AI trend detection)
 
@@ -29,20 +29,46 @@ IncidentManagement is a local-first macOS desktop app for tracking IT incidents,
 ```bash
 git clone https://github.com/saagpatel/IncidentManagement.git
 cd IncidentManagement
-pnpm install
+pnpm install --frozen-lockfile --ignore-scripts
 ```
 
 ### Run (development)
 
 ```bash
+# Frontend preview only (no Rust backend):
 pnpm dev
+# Native desktop app, with macOS/Tauri prerequisites:
+pnpm tauri dev
 ```
+
+Native launch opens the app-data SQLite database and checks local Ollama health. Use a disposable OS account with synthetic incidents for native/report walkthroughs; do not use your real incident database or start/download an Ollama model merely to check instructions. Ollama is optional for frontend verification.
 
 ### Build (desktop app)
 
 ```bash
 pnpm tauri build
 ```
+
+## Verification
+
+Run commands from the repository root. The frozen install above skips `prepare` (Husky), avoiding automatic changes to Git hook configuration; enable hooks separately with `pnpm exec husky` in your own development clone if desired. Use a feature branch for the branch-name guard.
+
+```bash
+# Focused hook tests with mocked Tauri calls; no native database or Ollama:
+pnpm test:run src/hooks/use-dashboard.test.ts
+# Broader frontend unit tests; pnpm test is the interactive watch mode:
+pnpm test:run
+# Configured ESLint/stylelint scope and TypeScript checking:
+pnpm ui:gate:static
+# TypeScript, frontend bundle and CI bundle budgets:
+pnpm test:bundle
+```
+
+No formatter gate is configured. For backend changes, CI's library lane is `cargo test --locked --manifest-path src-tauri/Cargo.toml --lib`; select a Rust test name by appending its filter when appropriate. `make check`, `make test` and `make lint` also target that manifest. Rust compilation needs the platform Tauri libraries (CI lists Linux GTK/WebKit packages in [ci.yml](.github/workflows/ci.yml)); the desktop package build uses `pnpm tauri build`.
+
+For UI changes, install Playwright Chromium with `pnpm exec playwright install chromium`, then run `pnpm ui:gate:regression` for the existing visual and accessibility tests. [playwright.config.ts](playwright.config.ts) starts the frontend on 127.0.0.1:4103 and may reuse a running server: confirm the port belongs to this checkout or choose a free matching port with `PLAYWRIGHT_BASE_URL` and `PLAYWRIGHT_WEB_SERVER_CMD`. These browser tests do not verify native storage or generated reports. For report changes, inspect synthetic report output in a disposable account and temporary output folder. Documentation-only edits do not require these walkthroughs.
+
+The broader [verification command list](.codex/verify.commands) includes branch/secret guards and performance lanes; use it for changes requiring those gates. Keep required PR checks intact. Local focused tests are not proof of a native launch, provider CI, or a release.
 
 ## Tech Stack
 
