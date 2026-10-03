@@ -6,26 +6,26 @@ Incident management desktop app with CI-enforced bundle budget.
 Tauri 2 + React + TypeScript + Vite
 
 ## Key Commands
-- `pnpm dev:lean` — web-only dev
+- `pnpm dev:lean` — full Tauri dev with temporary build/cache directories
 - `pnpm tauri dev` — full Tauri dev
-- `pnpm bundle:check` — verify bundle budget
-- `pnpm test:bundle` — bundle size tests
-- `pnpm build` — production build
+- `pnpm bundle:check` — verify bundle budget against existing `dist/assets` (run `pnpm build` first)
+- `pnpm test:bundle` — build frontend and verify bundle budget
+- `pnpm build` — production frontend build
 
 ## Architecture
 - `src/` — React frontend
 - `src-tauri/` — Rust backend (Tauri 2)
 
 ## Rules
-- CI enforces bundle budget — run `pnpm bundle:check` before adding heavy deps
-- Check bundle impact with `pnpm perf:bundle` when adding dependencies
+- CI enforces bundle budget — run `pnpm test:bundle` after adding heavy deps
+- Check bundle impact with `pnpm perf:bundle` after rebuilding when adding dependencies
 
 <!-- portfolio-context:start -->
 # Portfolio Context
 
 ## What This Project Is
 
-Incident management desktop app built on Tauri 2 + React + TypeScript + Vite. CI-enforced bundle budget. Local-first, no backend.
+Incident management desktop app built on Tauri 2 + React + TypeScript + Vite. CI-enforced bundle budget. Local-first, with a local Rust backend.
 
 ## Current State
 
@@ -45,7 +45,7 @@ pnpm install
 pnpm dev:lean
 ```
 
-Full Tauri: `pnpm tauri dev`. Bundle check: `pnpm bundle:check`. Production: `pnpm build`.
+Full Tauri: `pnpm tauri dev`. Build and bundle check: `pnpm test:bundle`. Production frontend: `pnpm build`; desktop: `pnpm tauri build`.
 
 ## Known Risks
 
@@ -55,6 +55,6 @@ Full Tauri: `pnpm tauri dev`. Bundle check: `pnpm bundle:check`. Production: `pn
 
 ## Next Recommended Move
 
-Identify the next feature phase from the implementation roadmap. Run `pnpm bundle:check` after any dependency changes.
+Identify the next feature phase. Run `pnpm test:bundle` after any dependency changes.
 
 <!-- portfolio-context:end -->

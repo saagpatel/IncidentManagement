@@ -4,14 +4,14 @@
 
 > Quarterly incident review prep used to take hours of manual data gathering. Now it takes one click.
 
-IncidentManagement is a local-first macOS desktop app for tracking IT incidents, running blameless post-mortems, detecting trends with AI, and generating polished DOCX and PDF reports for quarterly and annual leadership reviews. Built with Tauri 2 + React 19 + Rust + SQLite + Ollama AI — zero subscription, zero cloud dependency.
+IncidentManagement is a local-first macOS desktop app for tracking IT incidents, running blameless post-mortems, detecting service trends, and generating polished DOCX and PDF reports for quarterly leadership reviews. Built with Tauri 2 + React 19 + Rust + SQLite + Ollama AI — zero subscription, zero cloud dependency.
 
 ## Features
 
 - **Full Incident Lifecycle** — 5-state directed-graph machine (Active → Acknowledged → Monitoring → Resolved → Post-Mortem) with auto-computed P0–P4 priority from severity × impact matrix
 - **Blameless Post-Mortems** — Structured post-mortem templates with Markdown editing for root cause, resolution, lessons learned, and action items
-- **AI Trend Detection** — Ollama-powered clustering surfaces recurring failure themes across incident history without sending data off-device
-- **One-Click Reports** — Generate DOCX quarterly or annual review reports with embedded charts, executive summaries, and action item roll-ups
+- **Service Trend Detection** — SQL-based comparisons of incident counts over the last 7 days and the previous 7 days flag degrading services and high incident volume
+- **One-Click Reports** — Generate DOCX or PDF quarterly review reports with executive summaries and action item roll-ups; the current report UI does not supply chart images
 - **Service Catalog** — Registry of services with owner, tier (T1–T4), runbook, and dependency graph with cycle detection
 - **Full-Text Search** — FTS5 across titles, root causes, resolutions, and notes; bulk operations for status updates and cleanup
 
@@ -19,10 +19,10 @@ IncidentManagement is a local-first macOS desktop app for tracking IT incidents,
 
 ### Prerequisites
 
-- Node.js 24 (the version used by CI and supported by the locked test dependencies)
+- Node.js 24 (the version used by [ci.yml](.github/workflows/ci.yml) and supported by the locked test dependencies)
 - pnpm 10 (the version used by CI)
 - Rust toolchain (stable) + Tauri v2 prerequisites for macOS
-- [Ollama](https://ollama.ai) with a pulled model (optional — used for AI trend detection)
+- [Ollama](https://ollama.ai) with a pulled model (optional — used for AI summaries and suggestions)
 
 ### Installation
 
@@ -64,7 +64,7 @@ pnpm ui:gate:static
 pnpm test:bundle
 ```
 
-No formatter gate is configured. For backend changes, CI's library lane is `cargo test --locked --manifest-path src-tauri/Cargo.toml --lib`; select a Rust test name by appending its filter when appropriate. `make check`, `make test` and `make lint` also target that manifest. Rust compilation needs the platform Tauri libraries (CI lists Linux GTK/WebKit packages in [ci.yml](.github/workflows/ci.yml)); the desktop package build uses `pnpm tauri build`.
+No CI formatter check is configured; the pre-commit hook runs `lint-staged` with `prettier --write`. For backend changes, CI's library lane is `cargo test --manifest-path src-tauri/Cargo.toml --lib` when run from the repository root; select a Rust test name by appending its filter when appropriate. `make check`, `make test` and `make lint` also target that manifest (`make test` adds `--locked`). Rust compilation needs the platform Tauri libraries (CI lists Linux GTK/WebKit packages in [ci.yml](.github/workflows/ci.yml)); the desktop package build uses `pnpm tauri build`.
 
 For UI changes, install Playwright Chromium with `pnpm exec playwright install chromium`, then run `pnpm ui:gate:regression` for the existing visual and accessibility tests. [playwright.config.ts](playwright.config.ts) starts the frontend on 127.0.0.1:4103 and may reuse a running server: confirm the port belongs to this checkout or choose a free matching port with `PLAYWRIGHT_BASE_URL` and `PLAYWRIGHT_WEB_SERVER_CMD`. These browser tests do not verify native storage or generated reports. For report changes, inspect synthetic report output in a disposable account and temporary output folder. Documentation-only edits do not require these walkthroughs.
 
@@ -84,7 +84,7 @@ The broader [verification command list](.codex/verify.commands) includes branch/
 
 ## Architecture
 
-All incident data lives in a local SQLite database managed by the Rust Tauri backend. The state machine is enforced at the service layer — invalid transitions are rejected before any DB write. Ollama clustering runs asynchronously against stored incidents and writes cluster assignments back to SQLite without blocking the UI. Report generation happens entirely in Rust: chart data is computed server-side and embedded into DOCX/PDF templates via the report generation layer.
+Incident records live in a local SQLite database managed by the Rust Tauri backend; attachments are stored as local files. The state machine is enforced in the Rust query layer — invalid transitions reject status updates before they are committed. Service trend detection asynchronously queries SQLite incident counts; Ollama provides AI summaries and suggestions, with no clustering or cluster-assignment storage implemented. DOCX/PDF document generation happens in Rust; the DOCX builder can embed supplied PNG chart images, but the current report UI supplies none and the PDF builder does not embed charts.
 
 ## License
 
