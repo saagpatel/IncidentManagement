@@ -1,19 +1,19 @@
 .PHONY: build test lint clean check run
 
 build:
-	cargo build --release
+	cargo build --manifest-path src-tauri/Cargo.toml --release
 
 check:
-	cargo check
+	cargo check --manifest-path src-tauri/Cargo.toml
 
 test:
-	cargo test
+	cargo test --locked --manifest-path src-tauri/Cargo.toml --lib
 
 lint:
-	cargo clippy -- -D warnings
+	cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
 
 run:
-	cargo run
+	cargo run --manifest-path src-tauri/Cargo.toml
 
 clean:
-	cargo clean
+	cargo clean --manifest-path src-tauri/Cargo.toml
