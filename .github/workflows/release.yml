@@ -15,20 +15,20 @@ jobs:
       matrix:
         arch: [x86_64, aarch64]
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable as of 2026-10-05 PT
         with:
           targets: ${{ matrix.arch }}-apple-darwin
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
           version: 10
 
       - name: Setup Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22.23.2
           cache: 'pnpm'
@@ -44,7 +44,7 @@ jobs:
         run: cargo tauri build --target ${{ matrix.arch }}
 
       - name: Upload DMG artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: app-macos-${{ matrix.arch }}
           path: src-tauri/target/${{ matrix.arch }}-apple-darwin/release/bundle/dmg/
@@ -52,7 +52,7 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install Linux system dependencies
         run: |
@@ -71,15 +71,15 @@ jobs:
             patchelf
 
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable as of 2026-10-05 PT
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
           version: 10
 
       - name: Setup Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22.23.2
           cache: 'pnpm'
@@ -95,7 +95,7 @@ jobs:
         run: cargo tauri build
 
       - name: Upload Linux artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: app-linux
           path: |
@@ -105,20 +105,20 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable as of 2026-10-05 PT
         with:
           targets: x86_64-pc-windows-msvc
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
           version: 10
 
       - name: Setup Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22.23.2
           cache: 'pnpm'
@@ -134,7 +134,7 @@ jobs:
         run: cargo tauri build
 
       - name: Upload Windows artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: app-windows
           path: src-tauri/target/release/bundle/msi/
@@ -142,31 +142,34 @@ jobs:
   create-release:
     needs: [build-macos, build-linux, build-windows]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           path: releases/
 
       - name: Create Release Notes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG_NAME=${GITHUB_REF#refs/tags/}
           PREVIOUS_TAG=$(git tag -l --sort=-version:refname | grep -v "^${TAG_NAME}$" | head -1)
 
           if [ -z "$PREVIOUS_TAG" ]; then
-            CHANGELOG=$(git log --pretty=format:"%h - %s" $(git rev-list --max-parents=0 HEAD)..HEAD)
+            ROOT_COMMIT=$(git rev-list --max-parents=0 HEAD | head -1)
+            CHANGELOG=$(git log --pretty=format:'%h - %s' "${ROOT_COMMIT}..HEAD")
           else
-            CHANGELOG=$(git log --pretty=format:"%h - %s" ${PREVIOUS_TAG}..HEAD)
+            CHANGELOG=$(git log --pretty=format:'%h - %s' "${PREVIOUS_TAG}..HEAD")
           fi
 
           cat > /tmp/release_notes.md << 'EOF'
           ## Changelog
 
-          $CHANGELOG
+          EOF
+          printf '%s\n\n' "$CHANGELOG" >> /tmp/release_notes.md
+          cat >> /tmp/release_notes.md << 'EOF'
 
           ## Downloads
 
@@ -206,7 +209,7 @@ jobs:
           EOF
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           files: |
             releases/app-macos-x86_64/*.dmg
@@ -225,8 +228,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Announce Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG_NAME=${GITHUB_REF#refs/tags/}
           echo "✅ Release $TAG_NAME published successfully!"
